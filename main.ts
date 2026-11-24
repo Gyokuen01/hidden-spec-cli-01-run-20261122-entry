@@ -2,6 +2,10 @@
 //
 // In a trial the grader runs `node /bot/main.ts` with MAKEFUN_ENV_URL set, and then this file hands over to runner.ts
 // (the last lines below): keep that hand-over and runner.ts as they are, and write the CLI.
+//
+// v2: in a v4a Update File section with `*** Move to:`, the destination path is
+// safety-checked before the old file's missing check (SPEC section 10: safety first),
+// and a `diff --git` header line now tolerates trailing spaces or tabs.
 
 import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs';
 import { dirname } from 'node:path';
