@@ -296,7 +296,9 @@ function unifiedEdits(lines: string[], strict: boolean): Edit[] {
   while (i < lines.length) {
     const l = lines[i]!;
     if (l.startsWith('diff --git ')) {
-      const m = /^diff --git a\/(\S+) b\/(\S+)$/.exec(l);
+      // A `diff --git` line is `diff --git a/<X> b/<Y>`; trailing spaces or tabs after it
+      // do not change the form, but a path with a space in it is not of the form.
+      const m = /^diff --git a\/(\S+) b\/(\S+)[ \t]*$/.exec(l);
       if (m === null) throw new Exit2(`error: parse ${i + 1}`);
       const s = startSection(m[1]!, m[2]!);
       i += 1;
@@ -707,12 +709,12 @@ function v4aEdit(s: V4ASection, strict: boolean): Edit {
       tree.now.set(p, null);
       return;
     }
+    // SPEC section 10: every path an edit names is checked for safety before anything else
+    // about it, so the destination of a move is safety-checked before the old file's existence.
+    if (s.moveTo !== null && !safe(s.moveTo)) throw new Fail('unsafe', s.moveTo);
     const before = tree.get(p);
     if (before === null) throw new Fail('missing', p);
-    if (s.moveTo !== null) {
-      if (!safe(s.moveTo)) throw new Fail('unsafe', s.moveTo);
-      if (tree.get(s.moveTo) !== null) throw new Fail('exists', s.moveTo);
-    }
+    if (s.moveTo !== null && tree.get(s.moveTo) !== null) throw new Fail('exists', s.moveTo);
     const fp = splitFile(before);
     let fileLines = fp.lines;
     let cursor = 0;
